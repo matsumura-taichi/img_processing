@@ -56,9 +56,9 @@
                     //オリジナル容量blobデータをアップロード用blobに設定
                     var uploadBlob = originalBlob;                    
                     
-                    //オリジナル容量が2MB以上かチェック
+                    //オリジナル容量が100KB以上かチェック
                     if(100000 <= originalBlob["size"]) {
-                        //2MB以下に落とす
+                        //100KB以下に落とす
                         var capacityRatio = 100000 / originalBlob["size"];
                         var processingBinary = canvasImage.toDataURL("image/jpeg", capacityRatio); //画質落としてバイナリ化
                         uploadBlob = base64ToBlob(processingBinary); //画質落としたblobデータをアップロード用blobに設定
