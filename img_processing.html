@@ -3,48 +3,48 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf8">
         <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
         <script>
-            function canvasDraw() {
+            function imgDisp() {
                 var file = $("#imageSelect").prop("files")[0];
                 
                 //画像ファイルかチェック
                 if (file["type"] != "image/jpeg" && file["type"] != "image/png" && file["type"] != "image/gif") {
-                    alert("画像ファイルを選択してください");
+                    alert("jpgかpngかgifファイルを選択してください");
                     $("#imageSelect").val('');
-
+                    
                 } else {
                     var fr = new FileReader();
-
                     fr.onload = function() {
                         //選択した画像を一旦imgタグに表示
-                        $('#preview').attr("src", fr.result);
-                        
-                        //imgタグに表示した画像をimageオブジェクトとして取得
-                        var image = new Image();
-                        image.src = $("#preview").attr("src");
-                        
-                        //縦横比を維持した縮小サイズを取得
-                        var w = 800;
-                        var sizeRatio = w / image.width;
-                        var h = image.height * sizeRatio;
-                        
-                        //canvasに描画
-                        var canvas = $("#canvas");
-                        var ctx = canvas[0].getContext("2d");
-                        $("#canvas").attr("width", w);
-                        $("#canvas").attr("height", h);
-                        ctx.drawImage(image, 0, 0, w, h);      
+                        $('#preview').attr("src", fr.result);                        
                     };
-
                     fr.readAsDataURL(file);
                 }
             }   
+            
+            function imgUpload() {
+                var fileCheck = $("#imageSelect").val().length;
 
-            function imageUpload() {
-                var form = $("#imageForm").get(0);
-                var formData = new FormData(form);
+                //ファイル選択済みかチェック
+                if (fileCheck === 0) {
+                    alert("画像ファイルを選択してください");
+                    
+                } else {
+                    //imgタグに表示した画像をimageオブジェクトとして取得
+                    var image = new Image();
+                    image.src = $("#preview").attr("src");
 
-                //画像処理してformDataに追加
-                if ($("#canvas").length) {
+                    //縦横比を維持した縮小サイズを取得
+                    var w = 800;
+                    var sizeRatio = w / image.width;
+                    var h = image.height * sizeRatio;
+
+                    //canvasに描画
+                    var canvas = $("#canvas");
+                    var ctx = canvas[0].getContext("2d");
+                    $("#canvas").attr("width", w);
+                    $("#canvas").attr("height", h);
+                    ctx.drawImage(image, 0, 0, w, h);                          
+                    
                     //canvasに描画したデータを取得
                     var canvasImage = $("#canvas").get(0);
                     
@@ -66,33 +66,35 @@
                         console.log(uploadBlob["size"]);
                     }
                     
-                    //アップロード用blobをformDataに追加
+                    //アップロード用blobをformDataに設定
+                    var form = $("#imageForm").get(0);
+                    var formData = new FormData(form);                    
                     formData.append("selectImage", uploadBlob);
-                }
 
-                //formDataをPOSTで送信
-                $.ajax({
-                    async: false,
-                    type: "POST",
-                    url: "upload.php",
-                    data: formData,
-                    dataType: "text",
-                    cache: false,
-                    contentType: false,
-                    processData: false,
-                    error: function (XMLHttpRequest) {
-                        console.log(XMLHttpRequest);
-                        alert("アップロードに失敗しました");
-                    },
-                    success: function (res) {
-                        if(res !== "OK") {
-                            console.log(res);
+                    //formDataをPOSTで送信
+                    $.ajax({
+                        async: false,
+                        type: "POST",
+                        url: "upload.php",
+                        data: formData,
+                        dataType: "text",
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        error: function (XMLHttpRequest) {
+                            console.log(XMLHttpRequest);
                             alert("アップロードに失敗しました");
-                        } else {
-                            alert("アップロードに成功しました");
+                        },
+                        success: function (res) {
+                            if(res !== "OK") {
+                                console.log(res);
+                                alert("アップロードに失敗しました");
+                            } else {
+                                alert("アップロードに成功しました");
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
 
             // 引数のBase64の文字列をBlob形式にする
@@ -118,8 +120,8 @@
         <form action="" method="post" id="imageForm">
             <img src="" id="preview" />
             <canvas id="canvas"></canvas>
-            <input type="file" id="imageSelect" onChange="canvasDraw();" />
-            <input type="button" onClick="imageUpload();" value="アップロード" />
+            <input type="file" id="imageSelect" onChange="imgDisp();" />
+            <input type="button" onClick="imgUpload();" value="アップロード" />
         </form>
     </body>
 </html>
