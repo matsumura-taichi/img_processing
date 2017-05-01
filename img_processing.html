@@ -2,7 +2,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf8">
         <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
-        <script>
+        <script>            
             function imgDisp() {
                 var file = $("#imageSelect").prop("files")[0];
                 
@@ -10,91 +10,105 @@
                 if (file["type"] != "image/jpeg" && file["type"] != "image/png" && file["type"] != "image/gif") {
                     alert("jpgかpngかgifファイルを選択してください");
                     $("#imageSelect").val('');
-                    
-                } else {
-                    var fr = new FileReader();
-                    fr.onload = function() {
-                        //選択した画像を一旦imgタグに表示
-                        $('#preview').attr("src", fr.result);                        
-                    };
-                    fr.readAsDataURL(file);
+                    return false;
                 }
+                
+                var fr = new FileReader();
+                fr.onload = function() {
+                    //選択した画像を一旦imgタグに表示
+                    $('#preview').attr("src", fr.result);                        
+                };
+                fr.readAsDataURL(file);
             }   
             
             function imgUpload() {
-                var fileCheck = $("#imageSelect").val().length;
+                //加工後の横幅を800pxに設定
+                var processingWidth = 800;            
+            
+                //加工後の容量を100KB以下に設定
+                var processingCapacity = 100000;                               
 
                 //ファイル選択済みかチェック
+                var fileCheck = $("#imageSelect").val().length;
                 if (fileCheck === 0) {
                     alert("画像ファイルを選択してください");
-                    
-                } else {
-                    //imgタグに表示した画像をimageオブジェクトとして取得
-                    var image = new Image();
-                    image.src = $("#preview").attr("src");
-
-                    //縦横比を維持した縮小サイズを取得
-                    var w = 800;
-                    var sizeRatio = w / image.width;
-                    var h = image.height * sizeRatio;
-
-                    //canvasに描画
-                    var canvas = $("#canvas");
-                    var ctx = canvas[0].getContext("2d");
-                    $("#canvas").attr("width", w);
-                    $("#canvas").attr("height", h);
-                    ctx.drawImage(image, 0, 0, w, h);                          
-                    
-                    //canvasに描画したデータを取得
-                    var canvasImage = $("#canvas").get(0);
-                    
-                    //オリジナル容量(画質落としてない場合の容量)を取得
-                    var originalBinary = canvasImage.toDataURL("image/jpeg"); //画質落とさずバイナリ化
-                    var originalBlob = base64ToBlob(originalBinary); //画質落としてないblobデータをアップロード用blobに設定
-                    console.log(originalBlob["size"]);
-                    
-                    //オリジナル容量blobデータをアップロード用blobに設定
-                    var uploadBlob = originalBlob;                    
-                    
-                    //オリジナル容量が100KB以上かチェック
-                    if(100000 <= originalBlob["size"]) {
-                        //100KB以下に落とす
-                        var capacityRatio = 100000 / originalBlob["size"];
-                        var processingBinary = canvasImage.toDataURL("image/jpeg", capacityRatio); //画質落としてバイナリ化
-                        uploadBlob = base64ToBlob(processingBinary); //画質落としたblobデータをアップロード用blobに設定
-                        console.log(capacityRatio);                        
-                        console.log(uploadBlob["size"]);
-                    }
-                    
-                    //アップロード用blobをformDataに設定
-                    var form = $("#imageForm").get(0);
-                    var formData = new FormData(form);                    
-                    formData.append("selectImage", uploadBlob);
-
-                    //formDataをPOSTで送信
-                    $.ajax({
-                        async: false,
-                        type: "POST",
-                        url: "upload.php",
-                        data: formData,
-                        dataType: "text",
-                        cache: false,
-                        contentType: false,
-                        processData: false,
-                        error: function (XMLHttpRequest) {
-                            console.log(XMLHttpRequest);
-                            alert("アップロードに失敗しました");
-                        },
-                        success: function (res) {
-                            if(res !== "OK") {
-                                console.log(res);
-                                alert("アップロードに失敗しました");
-                            } else {
-                                alert("アップロードに成功しました");
-                            }
-                        }
-                    });
+                    return false;
                 }
+                
+                //imgタグに表示した画像をimageオブジェクトとして取得
+                var image = new Image();
+                image.src = $("#preview").attr("src");
+
+                var h;
+                var w;
+
+                //原寸横幅が加工後横幅より大きければ、縦横比を維持した縮小サイズを取得
+                if(processingWidth < image.width) {
+                    w = processingWidth;
+                    h = image.height * (processingWidth / image.width);
+
+                //原寸横幅が加工後横幅以下なら、原寸サイズのまま
+                } else {
+                    w = image.width;
+                    h = image.height;
+                }
+
+                //取得したサイズでcanvasに描画
+                var canvas = $("#canvas");
+                var ctx = canvas[0].getContext("2d");
+                $("#canvas").attr("width", w);
+                $("#canvas").attr("height", h);
+                ctx.drawImage(image, 0, 0, w, h);                          
+
+                //canvasに描画したデータを取得
+                var canvasImage = $("#canvas").get(0);
+
+                //オリジナル容量(画質落としてない場合の容量)を取得
+                var originalBinary = canvasImage.toDataURL("image/jpeg"); //画質落とさずバイナリ化
+                var originalBlob = base64ToBlob(originalBinary); //画質落としてないblobデータをアップロード用blobに設定
+                console.log(originalBlob["size"]);
+
+                //オリジナル容量blobデータをアップロード用blobに設定
+                var uploadBlob = originalBlob;                    
+
+                //オリジナル容量が加工容量以上かチェック
+                if(processingCapacity <= originalBlob["size"]) {
+                    //加工サイズに落とす
+                    var capacityRatio = processingCapacity / originalBlob["size"];
+                    var processingBinary = canvasImage.toDataURL("image/jpeg", capacityRatio); //画質落としてバイナリ化
+                    uploadBlob = base64ToBlob(processingBinary); //画質落としたblobデータをアップロード用blobに設定
+                    console.log(capacityRatio);                        
+                    console.log(uploadBlob["size"]);
+                }
+
+                //アップロード用blobをformDataに設定
+                var form = $("#imageForm").get(0);
+                var formData = new FormData(form);                    
+                formData.append("selectImage", uploadBlob);
+
+                //formDataをPOSTで送信
+                $.ajax({
+                    async: false,
+                    type: "POST",
+                    url: "upload.php",
+                    data: formData,
+                    dataType: "text",
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    error: function (XMLHttpRequest) {
+                        console.log(XMLHttpRequest);
+                        alert("アップロードに失敗しました");
+                    },
+                    success: function (res) {
+                        if(res !== "OK") {
+                            console.log(res);
+                            alert("アップロードに失敗しました");
+                        } else {
+                            alert("アップロードに成功しました");
+                        }
+                    }
+                });
             }
 
             // 引数のBase64の文字列をBlob形式にする
