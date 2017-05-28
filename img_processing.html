@@ -22,12 +22,12 @@
             }   
             
             function imgUpload() {
-                //加工後の横幅を800pxに設定
-                var processingWidth = 800;            
+                //加工後の横幅を取得
+                var processingWidth = $("#processingWidth").val();            
             
-                //加工後の容量を100KB以下に設定
-                var processingCapacity = 100000;                               
-
+                //加工後の容量を取得
+                var processingCapacity = $("#processingCapacity").val() * 1000;                               
+                
                 //ファイル選択済みかチェック
                 var fileCheck = $("#imageSelect").val().length;
                 if (fileCheck === 0) {
@@ -132,10 +132,12 @@
     </head>
     <body>
         <form action="" method="post" id="imageForm">
-            <img src="" id="preview" />
-            <canvas id="canvas"></canvas>
-            <input type="file" id="imageSelect" onChange="imgDisp();" />
-            <input type="button" onClick="imgUpload();" value="アップロード" />
+            <p><img src="" id="preview" /></p>
+            <p><canvas id="canvas"></canvas></p>
+            <p>加工後横幅<input type="number" id="processingWidth" />px</p>
+            <p>加工後容量<input type="number" id="processingCapacity" />KB以下</p>
+            <p><input type="file" id="imageSelect" onChange="imgDisp();" /></p>
+            <p><input type="button" onClick="imgUpload();" value="アップロード" /></p>
         </form>
     </body>
 </html>
