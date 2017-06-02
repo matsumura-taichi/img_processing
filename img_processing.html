@@ -23,10 +23,22 @@
             
             function imgUpload() {
                 //加工後の横幅を取得
-                var processingWidth = $("#processingWidth").val();            
+                var processingWidth = $("#processingWidth").val();
+                //未入力チェック
+                if(processingWidth.length === 0) {
+                    alert("加工後の横幅を入力してください");
+                    return false;                    
+                }
             
                 //加工後の容量を取得
-                var processingCapacity = $("#processingCapacity").val() * 1000;                               
+                var processingCapacity = $("#processingCapacity").val();
+                //未入力チェック
+                if(processingCapacity.length === 0) {
+                    alert("加工後の容量を入力してください");
+                    return false;                    
+                } else {
+                    processingCapacity = processingCapacity * 1000;
+                }
                 
                 //ファイル選択済みかチェック
                 var fileCheck = $("#imageSelect").val().length;
