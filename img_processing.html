@@ -19,8 +19,8 @@
                     $('#preview').attr("src", fr.result);                        
                 };
                 fr.readAsDataURL(file);
-            }   
-            
+            }
+                                    
             function imgUpload() {
                 //加工後の横幅を取得
                 var processingWidth = $("#processingWidth").val();
@@ -36,9 +36,9 @@
                 if(processingCapacity.length === 0) {
                     alert("加工後の容量を入力してください");
                     return false;                    
-                } else {
-                    processingCapacity = processingCapacity * 1000;
                 }
+                //入力値をKBに変換
+                processingCapacity = processingCapacity * 1000;
                 
                 //ファイル選択済みかチェック
                 var fileCheck = $("#imageSelect").val().length;
@@ -132,11 +132,14 @@
                       blob,
                       i,
                       dataLen;
+              
                 // blobの生成
                 for (i = 0, dataLen = data.length; i < dataLen; i++) {
                     arr[i] = data.charCodeAt(i);
                 }
+                
                 blob = new Blob([arr], {type: 'image/jpeg'});
+                
                 return blob;
             } 
         </script>
