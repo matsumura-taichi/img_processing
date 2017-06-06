@@ -1,52 +1,54 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf8">
+        <link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
         <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
-        <script>            
+        <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+        <script>
             function imgDisp() {
                 var file = $("#imageSelect").prop("files")[0];
-                
+
                 //画像ファイルかチェック
                 if (file["type"] != "image/jpeg" && file["type"] != "image/png" && file["type"] != "image/gif") {
                     alert("jpgかpngかgifファイルを選択してください");
                     $("#imageSelect").val('');
                     return false;
                 }
-                
+
                 var fr = new FileReader();
                 fr.onload = function() {
                     //選択した画像を一旦imgタグに表示
-                    $('#preview').attr("src", fr.result);                        
+                    $('#preview').attr("src", fr.result);
                 };
                 fr.readAsDataURL(file);
             }
-                                    
+
             function imgUpload() {
                 //加工後の横幅を取得
                 var processingWidth = $("#processingWidth").val();
                 //未入力チェック
                 if(processingWidth.length === 0) {
                     alert("加工後の横幅を入力してください");
-                    return false;                    
+                    return false;
                 }
-            
+
                 //加工後の容量を取得
                 var processingCapacity = $("#processingCapacity").val();
                 //未入力チェック
                 if(processingCapacity.length === 0) {
                     alert("加工後の容量を入力してください");
-                    return false;                    
+                    return false;
                 }
                 //入力値をKBに変換
                 processingCapacity = processingCapacity * 1000;
-                
+
                 //ファイル選択済みかチェック
                 var fileCheck = $("#imageSelect").val().length;
                 if (fileCheck === 0) {
                     alert("画像ファイルを選択してください");
                     return false;
                 }
-                
+
                 //imgタグに表示した画像をimageオブジェクトとして取得
                 var image = new Image();
                 image.src = $("#preview").attr("src");
@@ -70,7 +72,7 @@
                 var ctx = canvas[0].getContext("2d");
                 $("#canvas").attr("width", w);
                 $("#canvas").attr("height", h);
-                ctx.drawImage(image, 0, 0, w, h);                          
+                ctx.drawImage(image, 0, 0, w, h);
 
                 //canvasに描画したデータを取得
                 var canvasImage = $("#canvas").get(0);
@@ -81,7 +83,7 @@
                 console.log(originalBlob["size"]);
 
                 //オリジナル容量blobデータをアップロード用blobに設定
-                var uploadBlob = originalBlob;                    
+                var uploadBlob = originalBlob;
 
                 //オリジナル容量が加工容量以上かチェック
                 if(processingCapacity <= originalBlob["size"]) {
@@ -89,13 +91,13 @@
                     var capacityRatio = processingCapacity / originalBlob["size"];
                     var processingBinary = canvasImage.toDataURL("image/jpeg", capacityRatio); //画質落としてバイナリ化
                     uploadBlob = base64ToBlob(processingBinary); //画質落としたblobデータをアップロード用blobに設定
-                    console.log(capacityRatio);                        
+                    console.log(capacityRatio);
                     console.log(uploadBlob["size"]);
                 }
 
                 //アップロード用blobをformDataに設定
                 var form = $("#imageForm").get(0);
-                var formData = new FormData(form);                    
+                var formData = new FormData(form);
                 formData.append("selectImage", uploadBlob);
 
                 //formDataをPOSTで送信
@@ -132,27 +134,39 @@
                       blob,
                       i,
                       dataLen;
-              
+
                 // blobの生成
                 for (i = 0, dataLen = data.length; i < dataLen; i++) {
                     arr[i] = data.charCodeAt(i);
                 }
-                
+
                 blob = new Blob([arr], {type: 'image/jpeg'});
-                
+
                 return blob;
-            } 
+            }
         </script>
         <title>jsとcanvasで画像の容量を落とす</title>
     </head>
     <body>
-        <form action="" method="post" id="imageForm">
-            <p><img src="" id="preview" /></p>
-            <p><canvas id="canvas"></canvas></p>
-            <p>加工後横幅<input type="number" id="processingWidth" />px</p>
-            <p>加工後容量<input type="number" id="processingCapacity" />KB以下</p>
-            <p><input type="file" id="imageSelect" onChange="imgDisp();" /></p>
-            <p><input type="button" onClick="imgUpload();" value="アップロード" /></p>
-        </form>
+        <div class="container">
+            <div class="page-header">
+                <h1>jsとcanvasで画像の容量を落とす</h1>
+            </div>
+            <p>ファイル選択した画像をクライアント側で容量落としてから、PHPにPOSTで渡す</p>
+            <form action="" method="post" id="imageForm">
+                <p><img src="" id="preview" /></p>
+                <p><canvas id="canvas"></canvas></p>
+                <div class="form-group">
+                    <label>加工後横幅</label>
+                    <input type="number" id="processingWidth" />px
+                </div>
+                <div class="form-group">
+                    <label>加工後容量</label>
+                    <input type="number" id="processingCapacity" />KB以下
+                </div>
+                <p><input type="file" id="imageSelect" onChange="imgDisp();" /></p>
+                <p><input type="button" class="btn btn-primary btn-sm" onClick="imgUpload();" value="アップロード" /></p>
+            </form>
+        </div>
     </body>
 </html>
