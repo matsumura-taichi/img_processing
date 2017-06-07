@@ -31,12 +31,22 @@
                     alert("加工後の横幅を入力してください");
                     return false;
                 }
+                //1px以上チェック
+                if(processingWidth < 1) {
+                    alert("加工後の横幅は1px以上で入力してください");
+                    return false;
+                }
 
                 //加工後の容量を取得
                 var processingCapacity = $("#processingCapacity").val();
                 //未入力チェック
                 if(processingCapacity.length === 0) {
                     alert("加工後の容量を入力してください");
+                    return false;
+                }
+                //1px以上チェック
+                if(processingCapacity < 1) {
+                    alert("加工後の容量は1KB以上で入力してください");
                     return false;
                 }
                 //入力値をKBに変換
